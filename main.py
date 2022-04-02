@@ -10,6 +10,7 @@ from copyreg import constructor
 #     'address': '127.0.0.1',
 #     'port': 4567 | 5678 | 6789,
 #     'processTime': time.time(),
+#   'name': ''
 # }
 
 
@@ -22,6 +23,7 @@ class process():
         self.state = 'Released'
         self.requestedTime = time.time()
         self.replyQueue = []
+        self.waitingQueue = []
 
         self.listenThread = threading.Thread(target=self.listen_messages)
         self.listenThread.start()
@@ -36,14 +38,16 @@ class process():
         while True:
             message = eval(listener.recv(4096))
             print('Received message from: ',
-                  message['port'], 'data: ', message)
+                  message['name'], message['message_type'])
             if(message['message_type'] == 'Request'):
-                if((message['processTime'] < self.requestedTime and self.state == 'Wanted') or self.state == 'Held'):
-                    self.replyQueue.append(
+                if(((message['processTime'] > self.requestedTime) and self.state == 'Wanted') or self.state == 'Held'):
+                    self.waitingQueue.append(
                         (message['address'], message['port']))
                 else:
+                    print('Replying to ',
+                          message['name'], 'it can access the CS')
                     responseMessage = {
-                        'message_type': 'Reply', 'address': self.address, 'port': self.port, 'processTime': time.time()}
+                        'message_type': 'Reply', 'address': self.address, 'port': self.port, 'processTime': time.time(), 'name': self.name}
                     self.sendMessage(
                         (message['address'], message['port']), responseMessage)
             if(message['message_type'] == 'Reply'):
@@ -56,33 +60,45 @@ class process():
         sender.close()
 
     def getMutex(self):
-        print('process: ', self.name, 'entered mutex')
+        print('process: ', self.name, 'want mutex')
         self.state = 'Wanted'
         self.requestedTime = time.time()
         message = {
             'message_type': 'Request',
             'address': self.address,
             'port': self.port,
-            'processTime': self.requestedTime
+            'processTime': self.requestedTime,
+            'name': self.name,
         }
 
         for remoteAddress in self.remotes:
             self.sendMessage(remoteAddress, message)
+            self.replyQueue.append(remoteAddress)
 
         while(len(self.replyQueue) > 0):
             pass
 
+        self.state = 'Held'
+
+        print('process: ', self.name, 'entered mutex')
+
         return True
 
     def releaseMutex(self):
-        print('process: ', self.name, 'released mutex')
+        print('process: ', self.name, 'is releasing mutex')
         self.state = 'Released'
         message = {
             'message_type': 'Reply',
             'address': self.address,
             'port': self.port,
-            'processTime': self.requestedTime
+            'processTime': self.requestedTime,
+            'name': self.name
         }
-        for replyAddress in self.replyQueue:
+        aux_queue = []
+        for replyAddress in self.waitingQueue:
+            print('process: ', self.name,
+                  'released mutex for port: ', replyAddress[1])
             self.sendMessage(replyAddress, message)
-            self.replyQueue.remove(replyAddress)
+            aux_queue.append(replyAddress)
+        for address in aux_queue:
+            self.waitingQueue.remove(address)
