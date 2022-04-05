@@ -28,8 +28,11 @@ class process():
         self.listenThread = threading.Thread(target=self.listen_messages)
         self.listenThread.start()
 
-    def set_address(self, a):
-        self.address = a
+    def set_address(self, address):
+        self.address = address
+
+    def set_port(self, port):
+        self.port = port
 
     def set_remote(self, remoteAddress, remotePort):
         self.remotes.append((remoteAddress, remotePort))
