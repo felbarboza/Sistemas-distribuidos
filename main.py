@@ -26,6 +26,9 @@ class process():
         self.listenThread = threading.Thread(target=self.listen_messages)
         self.listenThread.start()
 
+    def set_address(self, a):
+        self.address = a
+
     def set_remote(self, remoteAddress, remotePort):
         self.remotes.append((remoteAddress, remotePort))
 
