@@ -1,8 +1,8 @@
+# -*- coding: utf-8 -*-
 import tkinter as tk
 from main import process
 
 window = tk.Tk()
-
 
 # Processo A
 address_a = ''
@@ -30,7 +30,7 @@ entry_b_port = tk.Entry()
 port_b_label.grid(column=1, row=2)
 entry_b_port.grid(column=1, row=3)
 
-# # Processo C
+# Processo C
 address_c = ''
 port_c = 0
 address_c_label = tk.Label(text="Endereço C")
@@ -50,19 +50,25 @@ process_c = process('', 0, 'process_c')
 
 # Metodos
 def set_a_values():
+    global address_a
     address_a = entry_a_address.get()
+    global port_a
     port_a = int(entry_a_port.get())
     process_a.set_address(address_a)
     process_a.set_port(port_a)
 
 def set_b_values():
+    global address_b
     address_b = entry_b_address.get()
+    global port_b
     port_b = int(entry_b_port.get())
     process_b.set_address(address_b)
     process_b.set_port(port_b)
 
 def set_c_values():
+    global address_c
     address_c = entry_a_address.get()
+    global port_c
     port_c = int(entry_a_port.get())
     process_c.set_address(address_c)
     process_c.set_port(port_c)
@@ -76,7 +82,7 @@ def set_remotes():
 
     process_c.set_remote(address_a, port_a)
     process_c.set_remote(address_b, port_b)    
-
+    
 def entry_a_SC():
     set_a_values()
     set_b_values()
@@ -137,6 +143,17 @@ button = tk.Button(
     text="Sair da SC - C",
     command=exit_c_SC
 ).grid(column=1, row=8)
+
+
+logs = 'Logs'
+logs_label = tk.Label(text=logs)
+logs_label.grid(column=0, row=9)
+
+def print_logs(self, new_log):
+    global logs
+    global logs_label
+    logs = logs + '\n' + new_log
+    logs_label.config(text = logs)
 
 
 window.mainloop()
