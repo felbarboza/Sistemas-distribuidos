@@ -5,14 +5,6 @@ import threading
 import time
 from copyreg import constructor
 
-# message = {
-#     'message_type': 'Reply' | 'Request',
-#     'address': '127.0.0.1',
-#     'port': 4567 | 5678 | 6789,
-#     'processTime': time.time(),
-#   'name': ''
-# }
-
 
 class process():
     def __init__(self, address, port, name):
@@ -43,14 +35,14 @@ class process():
 
         while True:
             message = eval(listener.recv(4096))
-            print('Received message from: ',
+            print('process ', self.name, ' Received message from: ',
                   message['name'], message['message_type'])
             if(message['message_type'] == 'Request'):
                 if(((message['processTime'] > self.requestedTime) and self.state == 'Wanted') or self.state == 'Held'):
                     self.waitingQueue.append(
                         (message['address'], message['port']))
                 else:
-                    print('Replying to ',
+                    print('process ', self.name, ' Replying to ',
                           message['name'], 'it can access the CS')
                     responseMessage = {
                         'message_type': 'Reply', 'address': self.address, 'port': self.port, 'processTime': time.time(), 'name': self.name}
