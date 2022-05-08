@@ -1,5 +1,5 @@
 import threading
-
+import time
 import Pyro4
 import Pyro4.util
 from Crypto import Random
@@ -19,11 +19,23 @@ class cliente_callback(object):
         return
 
     def notify(self, token, assinatura):
-
+        # metodo chamado pelo getToken do servidor quando um processo libera um recurso
         print("callback recebido do servidor!")
 
-    def loopThread(daemon):
+        # verificacao da assinatura digital do servidor
+        if (assinatura == self.server_public_key):
+            print("assinatura digital valida")
+        else:
+            print("assinatura digital invalida")
+
+
+    def loopThread(self, daemon):
         daemon.requestLoop()
+
+        # libera o recurso automaticamente caso o tempo expire
+        if (time.time() - self.server.startTime > 3):
+            self.server.releaseToken(self.name)
+        
 
     def getToken(self):
         self.server_public_key = self.server.getToken(self.name, self)
