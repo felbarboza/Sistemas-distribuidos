@@ -1,5 +1,9 @@
+import sys
 import threading
 import time
+import tkinter as tk
+from base64 import b64decode, b64encode
+
 import Pyro4
 import Pyro4.util
 from Crypto import Random
@@ -7,49 +11,100 @@ from Crypto.Hash import SHA384
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
 
+# faz aparecer as msg de erro do servidor
+sys.excepthook = Pyro4.util.excepthook
 
-@Pyro4.expose
-@Pyro4.callback
+
+window = tk.Tk()
+
+address_a_label = tk.Label(text="Endereço A")
+entry_a_address = tk.Entry()
+address_a_label.grid(column=0, row=0)
+entry_a_address.grid(column=0, row=1)
+
+
 class cliente_callback(object):
     def __init__(self, name):
-        self.server = Pyro4.core.Proxy("PYRONAME:CentralServer")
+        self.server = Pyro4.core.Proxy("PYRONAME:example.CentralServer")
         self.name = name
         self.server_public_key = ''
+        self.abort = 0
+        loop = threading.Thread(target=self.loop)
+        loop.start()
 
-        return
+    @Pyro4.expose
+    def setPublicKey(self, public_key):
+        self.server_public_key = b64decode(public_key['data'])
 
-    def notify(self, token, assinatura):
+    @Pyro4.expose
+    def notify(self, signed_token, token):
+        print(signed_token, token)
         # metodo chamado pelo getToken do servidor quando um processo libera um recurso
         print("callback recebido do servidor!")
 
-        # verificacao da assinatura digital do servidor
-        if (assinatura == self.server_public_key):
-            print("assinatura digital valida")
-        else:
-            print("assinatura digital invalida")
+        signed_token = b64decode(signed_token['data'])
+        token = SHA384.new(bytes(token, encoding='utf-8'))
 
+        # verificacao da assinatura digital do servidor
+        try:
+
+            pkcs1_15.new(RSA.importKey(self.server_public_key)
+                         ).verify(token, signed_token)
+            print("assinatura digital valida")
+        except:
+            print("assinatura digital invalida")
 
     def loopThread(self, daemon):
         daemon.requestLoop()
 
-        # libera o recurso automaticamente caso o tempo expire
-        if (time.time() - self.server.startTime > 3):
-            self.server.releaseToken(self.name)
-        
-
     def getToken(self):
-        self.server_public_key = self.server.getToken(self.name, self)
+        name = self.name
+
+        self.server.getToken(name, self)
+
+    def loop(self):
+        while(1):
+            time.sleep(0.1)
+
+    @Pyro4.expose
+    def releaseToken(self):
+        self.server.releaseToken(self.name)
+
+    def setName(self):
+        self.name = entry_a_address.get()
 
 
-def main():
+class DaemonThread(threading.Thread):
+    def __init__(self, client):
+        threading.Thread.__init__(self)
+        self.client = client
+        self.setDaemon(True)
 
-    ns = Pyro4.locateNS()
-    uri = ns.lookup("CentralServer")
-    servidor = Pyro4.Proxy(uri)
-    # ... servidor.metodo() —> invoca método no servidor
-    daemon = Pyro4.core.Daemon()
-    callback = cliente_callback()
-    daemon.register(callback)
-    thread = threading.Thread(target=callback.loopThread, args=(daemon, ))
-    thread.daemon = True
-    thread.start()
+    def run(self):
+        with Pyro4.core.Daemon() as daemon:
+            daemon.register(self.client)
+            daemon.requestLoop(lambda: not self.client.abort)
+
+
+s = cliente_callback(' ')
+daemonthread = DaemonThread(s)
+daemonthread.start()
+
+
+button = tk.Button(
+    text="Setar nome",
+    command=s.setName
+).grid(column=0, row=2)
+
+button = tk.Button(
+    text="Entrar na SC",
+    command=s.getToken
+).grid(column=0, row=3)
+
+
+button = tk.Button(
+    text="Sair da SC",
+    command=s.releaseToken
+).grid(column=0, row=4)
+
+window.mainloop()
