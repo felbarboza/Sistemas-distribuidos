@@ -17,7 +17,7 @@ sys.excepthook = Pyro4.util.excepthook
 
 window = tk.Tk()
 
-address_a_label = tk.Label(text="Endereço A")
+address_a_label = tk.Label(text="Cliente")
 entry_a_address = tk.Entry()
 address_a_label.grid(column=0, row=0)
 entry_a_address.grid(column=0, row=1)
@@ -34,6 +34,8 @@ class cliente_callback(object):
 
     @Pyro4.expose
     def setPublicKey(self, public_key):
+        #  armazena a chave publica do servidor que sera usada para
+        #  verificar a assinatura
         self.server_public_key = b64decode(public_key['data'])
 
     @Pyro4.expose
@@ -47,7 +49,6 @@ class cliente_callback(object):
 
         # verificacao da assinatura digital do servidor
         try:
-
             pkcs1_15.new(RSA.importKey(self.server_public_key)
                          ).verify(token, signed_token)
             print("assinatura digital valida")
@@ -58,8 +59,8 @@ class cliente_callback(object):
         daemon.requestLoop()
 
     def getToken(self):
+        # recupera o token
         name = self.name
-
         self.server.getToken(name, self)
 
     def loop(self):
@@ -68,9 +69,11 @@ class cliente_callback(object):
 
     @Pyro4.expose
     def releaseToken(self):
+        # libera o processo (concessao do Token)
         self.server.releaseToken(self.name)
 
     def setName(self):
+        # grava o nome do client
         self.name = entry_a_address.get()
 
 
