@@ -37,7 +37,7 @@ class Server():
         self.signed_token = SHA384.new(
             bytes(self.decrypted_token, encoding='utf-8'))
         self.signed_token = self.signature.sign(self.signed_token)
-        
+
         verifyTime = threading.Thread(target=self.verifyResourceTime)
         verifyTime.start()
 
@@ -58,7 +58,7 @@ class Server():
         # e aloca recursos para os processos que os requisitam
 
         print("cliente ", name, "requisitou o token")
-    
+
         if name not in self.clients.keys():
             # retorna a chave publica apenas no primeiro
             # pedido de acesso a recurso
@@ -102,7 +102,7 @@ class Server():
                 client = self.clients[new_client_name]
                 client.notify(self.signed_token, self.decrypted_token)
                 self.start_time_1 = time.time()
-                self.client_on_resource_1 = name
+                self.client_on_resource_1 = new_client_name
                 self.is_resource_1_used = True
             else:
                 # se nao ha nenhum client esperando, apenas reseta as variaveis
@@ -117,7 +117,7 @@ class Server():
                 print("Recurso agora com cliente ", new_client_name)
                 client.notify(self.signed_token, self.decrypted_token)
                 self.start_time_2 = time.time()
-                self.client_on_resource_2 = name
+                self.client_on_resource_2 = new_client_name
                 self.is_resource_2_used = True
             else:
                 # se nao ha nenhum client esperando, apenas reseta as variaveis
