@@ -29,6 +29,7 @@ class cliente_callback(object):
         self.name = name
         self.server_public_key = ''
         self.abort = 0
+        self.resource = 1
         loop = threading.Thread(target=self.loop)
         loop.start()
 
@@ -61,7 +62,8 @@ class cliente_callback(object):
     def getToken(self):
         # recupera o token
         name = self.name
-        self.server.getToken(name, self)
+        resource = self.resource
+        self.server.getToken(name, self, resource)
 
     def loop(self):
         while(1):
@@ -75,6 +77,10 @@ class cliente_callback(object):
     def setName(self):
         # grava o nome do client
         self.name = entry_a_address.get()
+
+    def setResource(self):
+        # grava o recurso a ser usado
+        self.resource = 1
 
 
 class DaemonThread(threading.Thread):

@@ -45,15 +45,15 @@ class Server():
         # loop que irá liberar recursos em uso pelos processos caso passem do tempo limite
         while(1):
             if(self.is_resource_1_used == True):
-                if((self.start_time_1+10) < time.time()):
+                if((self.start_time_1+100) < time.time()):
                     self.clients[self.client_on_resource_1].releaseToken()
             if(self.is_resource_2_used == True):
-                if((self.start_time_2+10) < time.time()):
+                if((self.start_time_2+100) < time.time()):
                     self.clients[self.client_on_resource_2].releaseToken()
             time.sleep(0.1)
 
     @Pyro4.expose
-    def getToken(self, name, client):
+    def getToken(self, name, client, resource):
         # metodo que gerencia as filas de uso dos recursos
         # e aloca recursos para os processos que os requisitam
 
@@ -66,27 +66,48 @@ class Server():
             self.clients[name] = client
             client.setPublicKey(self.public_key.exportKey())
 
-        if(self.is_resource_1_used and self.is_resource_2_used):
-            if(len(self.fila1) > len(self.fila2)):
-                print("os dois recursos estão em uso, adicionando na fila 2")
-                self.fila2.append(name)
-            else:
-                print("os dois recursos estão em uso, adicionando na fila 1")
-                self.fila1.append(name)
-        elif(self.is_resource_1_used):
-            # como o recurso 1 esta em uso, fornece o 2 para o processo
-            print("usando recurso 2")
-            self.is_resource_2_used = True
-            self.client_on_resource_2 = name
-            client.notify(self.signed_token, self.decrypted_token)
-            self.start_time_2 = time.time()
-        else:
-            # como o recurso 2 esta em uso, fornece o 1 para o processo
-            print("usando recurso 1")
-            self.is_resource_1_used = True
-            self.client_on_resource_1 = name
-            client.notify(self.signed_token, self.decrypted_token)
-            self.start_time_1 = time.time()
+        match resource:
+            case 1:
+                if(len(self.fila1) > 0):
+                    self.fila1.append(name)
+                else:
+                    print("usando recurso 1")
+                    self.is_resource_1_used = True
+                    self.client_on_resource_1 = name
+                    client.notify(self.signed_token, self.decrypted_token)
+                    self.start_time_1 = time.time() 
+            case 2:
+                if(len(self.fila2) > 0):
+                    self.fila2.append(name)
+                else:
+                    print("usando recurso 2")
+                    self.is_resource_2_used = True
+                    self.client_on_resource_2 = name
+                    client.notify(self.signed_token, self.decrypted_token)
+                    self.start_time_2 = time.time() 
+             
+
+        # if(self.is_resource_1_used and self.is_resource_2_used):
+        #     if(len(self.fila1) > len(self.fila2)):
+        #         print("os dois recursos estão em uso, adicionando na fila 2")
+        #         self.fila2.append(name)
+        #     else:
+        #         print("os dois recursos estão em uso, adicionando na fila 1")
+        #         self.fila1.append(name)
+        # elif(self.is_resource_1_used):
+        #     # como o recurso 1 esta em uso, fornece o 2 para o processo
+        #     print("usando recurso 2")
+        #     self.is_resource_2_used = True
+        #     self.client_on_resource_2 = name
+        #     client.notify(self.signed_token, self.decrypted_token)
+        #     self.start_time_2 = time.time()
+        # else:
+        #     # como o recurso 2 esta em uso, fornece o 1 para o processo
+        #     print("usando recurso 1")
+        #     self.is_resource_1_used = True
+        #     self.client_on_resource_1 = name
+        #     client.notify(self.signed_token, self.decrypted_token)
+        #     self.start_time_1 = time.time()
 
     @Pyro4.expose
     def releaseToken(self, name):
