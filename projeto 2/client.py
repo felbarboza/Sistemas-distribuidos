@@ -17,10 +17,14 @@ sys.excepthook = Pyro4.util.excepthook
 
 window = tk.Tk()
 
-address_a_label = tk.Label(text="Cliente")
+address_a_label = tk.Label(text="Client name:")
 entry_a_address = tk.Entry()
+resource_label = tk.Label(text="Resource to use:")
+entry_resource = tk.Entry()
 address_a_label.grid(column=0, row=0)
 entry_a_address.grid(column=0, row=1)
+resource_label.grid(column=0, row=2)
+entry_resource.grid(column=0, row=3)
 
 
 class cliente_callback(object):
@@ -62,8 +66,9 @@ class cliente_callback(object):
     def getToken(self):
         # recupera o token
         name = self.name
-        resource = self.resource
-        self.server.getToken(name, self, resource)
+        recurso = int(self.resource)
+        
+        self.server.getToken(name, self, recurso)
 
     def loop(self):
         while(1):
@@ -80,7 +85,7 @@ class cliente_callback(object):
 
     def setResource(self):
         # grava o recurso a ser usado
-        self.resource = 1
+        self.resource = entry_resource.get()
 
 
 class DaemonThread(threading.Thread):
@@ -103,17 +108,22 @@ daemonthread.start()
 button = tk.Button(
     text="Setar nome",
     command=s.setName
-).grid(column=0, row=2)
+).grid(column=0, row=4)
+
+button = tk.Button(
+    text="Escolher recurso",
+    command=s.setResource
+).grid(column=0, row=5)
 
 button = tk.Button(
     text="Entrar na SC",
     command=s.getToken
-).grid(column=0, row=3)
+).grid(column=0, row=6)
 
 
 button = tk.Button(
     text="Sair da SC",
     command=s.releaseToken
-).grid(column=0, row=4)
+).grid(column=0, row=7)
 
 window.mainloop()
