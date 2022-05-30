@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Client</title>
+  </head>
+
+  <body>
+    <div id="visit">
+      <h1>Get resource</h1>
+      <form>
+        <label for="username">Name</label>
+        <input type="text" id="name" /><br /><br />
+        <!-- <label for="username">Phone</label>
+        <input type="text" id="phone" /><br /><br /> -->
+      </form>
+    </div>
+
+    <div id="contentdiv">
+      <script src="client.js"></script>
+
+      <h1>Selecionar recurso</h1>
+      <form>
+        <label for="titulo_consulta">Recurso</label>
+        <input type="text" id="resource" /><br /><br />
+        <input type="button" value="Pedir acesso" onclick="getToken()" />
+      </form>
+      <div id="response" display="block">
+        <p id="response"></p>
+      </div>
+
+      <br />
+      <h1>Devolver recurso</h1>
+      <form>
+        <input type="button" value="Devolver" onclick="releaseToken()" />
+      </form>
+      <div id="cadastra_result" display="block">
+        <p id="response_2"></p>
+      </div>
+      <br />
+
+      
+      <h1>Notifications</h1>
+      <div id="data"></div>
+    </div>
+  </body>
+</html>
