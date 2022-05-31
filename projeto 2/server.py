@@ -66,27 +66,26 @@ class Server():
             self.clients[name] = client
             client.setPublicKey(self.public_key.exportKey())
 
-        match resource:
-            case 1:
-                if(self.is_resource_1_used):
-                    print("recurso 1 em uso, adicionando na fila")
-                    self.fila1.append(name)
-                else:
-                    print("usando recurso 1")
-                    self.is_resource_1_used = True
-                    self.client_on_resource_1 = name
-                    client.notify(self.signed_token, self.decrypted_token)
-                    self.start_time_1 = time.time() 
-            case 2:
-                if(self.is_resource_2_used):
-                    print("recurso 2 em uso, adicionando na fila")
-                    self.fila2.append(name)
-                else:
-                    print("usando recurso 2")
-                    self.is_resource_2_used = True
-                    self.client_on_resource_2 = name
-                    client.notify(self.signed_token, self.decrypted_token)
-                    self.start_time_2 = time.time() 
+        if(resource == 1):
+            if(self.is_resource_1_used):
+                print("recurso 1 em uso, adicionando na fila")
+                self.fila1.append(name)
+            else:
+                print("usando recurso 1")
+                self.is_resource_1_used = True
+                self.client_on_resource_1 = name
+                client.notify(self.signed_token, self.decrypted_token)
+                self.start_time_1 = time.time()
+        elif (resource == 2):
+            if(self.is_resource_2_used):
+                print("recurso 2 em uso, adicionando na fila")
+                self.fila2.append(name)
+            else:
+                print("usando recurso 2")
+                self.is_resource_2_used = True
+                self.client_on_resource_2 = name
+                client.notify(self.signed_token, self.decrypted_token)
+                self.start_time_2 = time.time()
 
     @Pyro4.expose
     def releaseToken(self, name):
