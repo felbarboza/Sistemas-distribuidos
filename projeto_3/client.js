@@ -6,12 +6,14 @@ function connect() {
 	var sse_establish_connection = document.getElementById("sse");
 	console.log(sse_establish_connection.value);
 	if (sse_establish_connection.innerHTML == "No") {
+		// cria a conexao persistente
 		var eventSource = new EventSource("http://127.0.0.1:8000/stream");
 
 		eventSource.onerror = (event, err) => {
 			console.error("Error in connect SSE", event, err);
 		};
 
+		// define um evento para executar quando o servidor envia uma mensagem
 		eventSource.addEventListener("message", (e) => {
 			console.log("received event", e);
 			var data = JSON.parse(e.data);
@@ -27,6 +29,7 @@ function connect() {
 			targetContainer.innerHTML += data_filtered;
 		});
 
+		// conexao estabelecida, pode receber mensagens do servidor
 		console.log("Connected");
 
 		sse_establish_connection.innerHTML = "Yes";
@@ -34,6 +37,7 @@ function connect() {
 }
 
 function getToken() {
+	// recupera o recurso com POST
 	var name = document.getElementById("name").value;
 	var resource = document.getElementById("resource").value;
 
@@ -58,6 +62,7 @@ function getToken() {
 }
 
 function releaseToken() {
+	// libera o recurso com PUT
 	var name = document.getElementById("name").value;
 
 	body = {

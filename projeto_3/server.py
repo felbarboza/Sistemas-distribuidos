@@ -56,6 +56,7 @@ def post():
     print(arguments)
     getToken(arguments['name'], int(arguments['resource']))
 
+    # sucesso da request
     return 200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
